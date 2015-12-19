@@ -4,9 +4,11 @@ exports.stringify = function stringify(x) {
     return JSON.stringify(x);
   };
 
-exports.connect = function connect(host) {
-    return function() {
-      return io.connect(host);
+exports.connect = function connect(io) {
+    return function(host) {
+      return function() {
+        return io.connect(host);
+      };
     };
   };
 

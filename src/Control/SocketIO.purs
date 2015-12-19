@@ -5,8 +5,8 @@ import Control.Monad.Eff
 import Data.Function
 import Data.Foreign
 import Data.Foreign.Class
--- import Data.Foreign
 
+foreign import data Client :: *
 foreign import data SocketIO :: !
 foreign import data Socket :: *
 
@@ -18,7 +18,7 @@ type MsgCallback a eff = a -> Eff (socket :: SocketIO | eff) Unit
 foreign import stringify :: Foreign -> String
 
 
-foreign import connect :: forall eff. Host -> (Eff (socket :: SocketIO | eff) Socket)
+foreign import connect :: forall eff. Client -> Host -> (Eff (socket :: SocketIO | eff) Socket)
 
 foreign import onImpl :: forall eff. Fn3 Socket
                                      Channel
