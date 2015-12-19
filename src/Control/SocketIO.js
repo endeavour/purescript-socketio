@@ -1,7 +1,7 @@
 // module Control.SocketIO
 
 exports.stringify = function stringify(x) {
-    return JSON.stringify(x);\
+    return JSON.stringify(x);
   };
 
 exports.connect = function connect(host) {
