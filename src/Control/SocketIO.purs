@@ -1,5 +1,6 @@
 module Control.SocketIO where
 
+import Prelude
 import Control.Monad.Eff
 import Data.Function
 import Data.Foreign
@@ -14,51 +15,29 @@ type Channel = String
 
 type MsgCallback a eff = a -> Eff (socket :: SocketIO | eff) Unit
 
-foreign import stringify
-  "function stringify(x) {\
-  \  return JSON.stringify(x);\
-  \}" :: Foreign -> String
+foreign import stringify :: Foreign -> String
 
 
-foreign import connect
-  "function connect(host) {\
-  \  return function() {\
-  \    return io.connect(host);\
-  \  };\
-  \}" :: forall eff. Host -> (Eff (socket :: SocketIO | eff) Socket)
-  
-foreign import onImpl
-  "function onImpl(sock, channel, onMessage) {\
-  \  return function() {\
-  \    sock.on(channel, function(m){ onMessage(m)();});\
-  \  };\
-  \}" :: forall eff. Fn3 Socket
-                       Channel   
-                       (MsgCallback String eff)
-                       (Eff (socket :: SocketIO | eff) Unit)
+foreign import connect :: forall eff. Host -> (Eff (socket :: SocketIO | eff) Socket)
 
-foreign import emitImpl
-  "function emitImpl(sock, channel) {\
-  \  return function() {\
-  \    sock.emit(channel);\
-  \  };\
-  \}" :: forall eff. Fn2 Socket
-                         Channel
-                         (Eff (socket :: SocketIO | eff) Unit)
+foreign import onImpl :: forall eff. Fn3 Socket
+                                     Channel
+                                     (MsgCallback String eff)
+                                     (Eff (socket :: SocketIO | eff) Unit)
 
-foreign import emitMsgImpl
-  "function emitMsgImpl(sock, channel, emitMessage) {\
-  \  return function() {\
-  \    sock.emit(channel, emitMessage);\
-  \  };\
-  \}" :: forall eff. Fn3 Socket
-                         Channel
-                         String
-                         (Eff (socket :: SocketIO | eff) Unit)
+foreign import emitImpl :: forall eff. Fn2
+                                       Socket
+                                       Channel
+                                       (Eff (socket :: SocketIO | eff) Unit)
+
+foreign import emitMsgImpl :: forall eff. Fn3 Socket
+                                          Channel
+                                          String
+                                          (Eff (socket :: SocketIO | eff) Unit)
 
 onMsg :: forall eff a. (IsForeign a)
-      => Socket 
-      -> Channel 
+      => Socket
+      -> Channel
       -> MsgCallback (F a) eff
       -> Eff (socket :: SocketIO | eff) Unit
 onMsg s c k = runFn3 onImpl s c (k <<< readJSON)
@@ -71,5 +50,4 @@ emitMsg:: forall eff a. Socket
        -> a
        -> Eff (socket :: SocketIO | eff) Unit
 emitMsg s c d = let data' = stringify $ toForeign d
-                    emitMsg  = runFn3 emitMsgImpl
-                in  emitMsg s c data' 
+                in  (runFn3 emitMsgImpl) s c data'
